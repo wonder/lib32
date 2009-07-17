@@ -1,0 +1,64 @@
+#!/bin/bash
+#Finding updates to lib32 packages
+
+#extract pkgver from lib32-package-pkgver-pkgrel format
+get_pkgver(){
+    echo $1 | rev | awk -F"-" '{print $2}' | rev;
+}
+
+#extract pkgrel from lib32-package-pkgver-pkgrel format
+get_pkgrel(){
+    echo $1 | rev | awk -F"-" '{print $1}' | rev;
+}
+
+#extract pkgname from lib32-package-pkgver-pkgrel
+get_pkgname(){
+    source_string=$1;
+    substring="-$2-$3";
+    echo ${source_string%$substring};
+}
+
+#check version between lib32-package and package.
+# $_pkgver is the version from core/extra
+# $_pkgrel is the version from core/extra
+check_all(){
+    if [ $_pkgver != $pkgver ];then
+	echo "$pkgname $_pkgver new $pkgver is old";
+    else
+	if [ $_pkgrel != $pkgrel ];then
+	    echo "$pkgname $_pkgrel is newrel $pkgrel is old";
+	fi
+    fi
+
+}
+#find package in core/extra
+#return 1 if the package is not found
+#return 0 succes
+find_package(){
+    _pkgname=${1#"lib32-"};
+    #testing first core
+    result=`ls -1 /var/lib/pacman/sync/core | grep ^$_pkgname -m1`;
+    if [ -z $result ]; then
+	result=`ls -1 /var/lib/pacman/sync/extra | grep ^$_pkgname -m1`;
+    	if [ -z $result ]; then
+	    return 1; #package not found;
+	fi
+    fi
+    _pkgver=`get_pkgver $result`;
+    _pkgrel=`get_pkgrel $result`;
+    return 0; #sucess
+}
+
+list=`ls -1 /var/lib/pacman/sync/community/ | grep ^lib32-`
+#MAIN
+for i in $list; do
+    pkgver=`get_pkgver $i`;
+    pkgrel=`get_pkgrel $i`;
+    pkgname=`get_pkgname $i $pkgver $pkgrel`
+    find_package $pkgname;
+    return_val=$?
+    if [ $return_val -eq 0 ];then
+	check_all;
+    else echo "$pkgname not found!!";
+    fi
+done
