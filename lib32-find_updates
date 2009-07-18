@@ -37,12 +37,16 @@ check_all(){
 find_package(){
     _pkgname=${1#"lib32-"};
     #testing first core
-    result=`ls -1 /var/lib/pacman/sync/core | grep ^$_pkgname -m1`;
-    if [ -z $result ]; then
-	result=`ls -1 /var/lib/pacman/sync/extra | grep ^$_pkgname -m1`;
+    if [ $_pkgname = "nas" ]; then
+	result=`ls -1 /var/lib/pacman/sync/community | grep ^$_pkgname -m1`;
+    else
+    	result=`ls -1 /var/lib/pacman/sync/core | grep ^$_pkgname -m1`;
     	if [ -z $result ]; then
-	    return 1; #package not found;
-	fi
+	    result=`ls -1 /var/lib/pacman/sync/extra | grep ^$_pkgname -m1`;
+	    if [ -z $result ]; then
+		return 1; #package not found;
+	    fi
+    	fi
     fi
     _pkgver=`get_pkgver $result`;
     _pkgrel=`get_pkgrel $result`;
@@ -59,6 +63,7 @@ for i in $list; do
     return_val=$?
     if [ $return_val -eq 0 ];then
 	check_all;
-    else echo "$pkgname not found!!";
+    else
+	echo "$pkgname not found!!";
     fi
 done
