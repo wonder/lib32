@@ -26,7 +26,11 @@ check_all(){
 	echo "$pkgname $_pkgver new $pkgver is old";
     else
 	if [ $_pkgrel != $pkgrel ];then
-	    echo "$pkgname $_pkgrel is newrel $pkgrel is old";
+	    if [[ $_pkgrel == *.*  || $pkgrel == *.* ]] ; then
+		continue; #ignore packages that have . in pkgrel
+	    else
+		echo "$pkgname $_pkgrel is newrel $pkgrel is old";
+	    fi
 	fi
     fi
 
