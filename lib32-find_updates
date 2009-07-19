@@ -1,6 +1,16 @@
 #!/bin/bash
 #Finding updates to lib32 packages
 
+#For archlinux system
+WORKING_DIRECTORY="/var/lib/pacman/sync"
+USE_LOCAL_DATABASE=1;
+
+#For non-archlinux systems
+#WORKING_DIRECTORY="/home/user/lib32"
+#USE_LOCAL_DATABASE=1;
+#MIRROR="http://mir.archlinux.fr"
+
+
 #extract pkgver from lib32-package-pkgver-pkgrel format
 get_pkgver(){
     echo $1 | rev | awk -F"-" '{print $2}' | rev;
@@ -42,11 +52,11 @@ find_package(){
     _pkgname=${1#"lib32-"};
     #testing first core
     if [ $_pkgname = "nas" ]; then
-	result=`ls -1 /var/lib/pacman/sync/community | grep ^$_pkgname -m1`;
+	result=`ls -1 "$WORKING_DIRECTORY/community" | grep ^$_pkgname -m1`;
     else
-    	result=`ls -1 /var/lib/pacman/sync/core | grep ^$_pkgname -m1`;
+    	result=`ls -1 "$WORKING_DIRECTORY/core" | grep ^$_pkgname -m1`;
     	if [ -z $result ]; then
-	    result=`ls -1 /var/lib/pacman/sync/extra | grep ^$_pkgname -m1`;
+	    result=`ls -1 "$WORKING_DIRECTORY/extra" | grep ^$_pkgname -m1`;
 	    if [ -z $result ]; then
 		return 1; #package not found;
 	    fi
@@ -57,7 +67,26 @@ find_package(){
     return 0; #sucess
 }
 
-list=`ls -1 /var/lib/pacman/sync/community/ | grep ^lib32-`
+extract_database(){
+    #clean working directory
+    rm -rf $WORKING_DIRECTORY/*
+    mkdir "$WORKING_DIRECTORY/{core,extra,community}"
+    for repo in core extra community; do
+	wget "$MIRROR/$repo/os/x86_64/$repo.db.tar.gz" -q -P "$WORKING_DIRECTORY/$repo"
+	tar xzf "$WORKING_DIRECTORY/$repo/$repo.db.tar.gz" -C "$WORKING_DIRECTORY/$repo"
+    done
+}
+
+if [ ! -d "$WORKING_DIRECTORY" ]; then
+    echo "Working directory doesn't exist"
+    exit
+fi
+
+if [ $USE_LOCAL_DATABASE -eq 0 ];then
+    extract_database;
+fi
+
+list=`ls -1 "$WORKING_DIRECTORY/community/" | grep ^lib32-`
 #MAIN
 for i in $list; do
     pkgver=`get_pkgver $i`;
