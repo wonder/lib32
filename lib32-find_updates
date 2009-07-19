@@ -7,7 +7,7 @@ USE_LOCAL_DATABASE=1;
 
 #For non-archlinux systems
 #WORKING_DIRECTORY="/home/user/lib32"
-#USE_LOCAL_DATABASE=1;
+#USE_LOCAL_DATABASE=0;
 #MIRROR="http://mir.archlinux.fr"
 
 
