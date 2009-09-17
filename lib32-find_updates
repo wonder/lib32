@@ -52,25 +52,25 @@ find_package(){
     _pkgname=${1#"lib32-"};
     #testing first core
     if [ $_pkgname = "nas" ]; then
-	result=`ls -1 "$WORKING_DIRECTORY/community" | grep ^$_pkgname -m1`;
+	result=$(ls -1 "$WORKING_DIRECTORY/community" | grep ^$_pkgname -m1);
     else
-    	result=`ls -1 "$WORKING_DIRECTORY/core" | grep ^$_pkgname -m1`;
+    	result=$(ls -1 "$WORKING_DIRECTORY/core" | grep ^$_pkgname -m1);
     	if [ -z $result ]; then
-	    result=`ls -1 "$WORKING_DIRECTORY/extra" | grep ^$_pkgname -m1`;
+	    result=$(ls -1 "$WORKING_DIRECTORY/extra" | grep ^$_pkgname -m1);
 	    if [ -z $result ]; then
 		return 1; #package not found;
 	    fi
     	fi
     fi
-    _pkgver=`get_pkgver $result`;
-    _pkgrel=`get_pkgrel $result`;
+    _pkgver=$(get_pkgver $result);
+    _pkgrel=$(get_pkgrel $result);
     return 0; #sucess
 }
 
 extract_database(){
     #clean working directory
-    rm -rf $WORKING_DIRECTORY/*
-    mkdir "$WORKING_DIRECTORY/{core,extra,community}"
+    rm -rf "$WORKING_DIRECTORY"/*
+    mkdir "$WORKING_DIRECTORY"/{core,extra,community}
     for repo in core extra community; do
 	wget "$MIRROR/$repo/os/x86_64/$repo.db.tar.gz" -q -P "$WORKING_DIRECTORY/$repo"
 	tar xzf "$WORKING_DIRECTORY/$repo/$repo.db.tar.gz" -C "$WORKING_DIRECTORY/$repo"
@@ -86,12 +86,12 @@ if [ $USE_LOCAL_DATABASE -eq 0 ];then
     extract_database;
 fi
 
-list=`ls -1 "$WORKING_DIRECTORY/community/" | grep ^lib32-`
+list=$(ls -1 "$WORKING_DIRECTORY/community/" | grep ^lib32-)
 #MAIN
 for i in $list; do
-    pkgver=`get_pkgver $i`;
-    pkgrel=`get_pkgrel $i`;
-    pkgname=`get_pkgname $i $pkgver $pkgrel`
+    pkgver=$(get_pkgver $i);
+    pkgrel=$(get_pkgrel $i);
+    pkgname=$(get_pkgname $i $pkgver $pkgrel);
     find_package $pkgname;
     return_val=$?
     if [ $return_val -eq 0 ];then
